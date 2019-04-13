@@ -39,3 +39,13 @@ npm run
 
 开发者工具中找到云函数目录上传并部署：云端安装依赖（不上传node_modeles）
 setBaiduToken 需上传触发器(定时器) 每十五天更新一次token
+
+#### 添加数据库字段
+
+```
+identification-record
+token
+baidu-token
+user
+
+```
