@@ -1,0 +1,9 @@
+{
+    "triggers": [
+        {
+            "name": "setToken",
+            "type": "timer",
+            "config": "0 59 0/2 * * * *"
+        }
+    ]
+}

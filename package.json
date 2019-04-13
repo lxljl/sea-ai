@@ -1,0 +1,45 @@
+{
+  "name": "sea-ai",
+  "version": "0.0.1",
+  "description": "识图AI模板",
+  "main": "dist/app.js",
+  "scripts": {
+    "dev": "wepy build --watch",
+    "web": "wepy build --output web",
+    "build": "cross-env NODE_ENV=production wepy build --no-cache",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sea_lx <lxx_ljl@163.com>",
+  "license": "MIT",
+  "dependencies": {
+    "promise-polyfill": "^7.1.2",
+    "wepy": "^1.7.1",
+    "wepy-async-function": "^1.4.6"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.2.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-export-extensions": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-1": "^6.24.1",
+    "cross-env": "^5.1.3",
+    "eslint": "^3.18.0",
+    "eslint-config-standard": "^7.1.0",
+    "eslint-friendly-formatter": "^2.0.7",
+    "eslint-plugin-html": "^2.0.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^2.0.1",
+    "wepy-compiler-babel": "^1.5.1",
+    "wepy-compiler-postcss": "^1.0.2",
+    "wepy-compiler-pug": "^1.4.7",
+    "wepy-compiler-stylus": "^1.3.12",
+    "wepy-eslint": "^1.5.3",
+    "wepy-plugin-autoprefixer": "^1.5.10",
+    "wepy-plugin-imagemin": "^1.5.3",
+    "wepy-plugin-px2units": "^1.0.0",
+    "wepy-plugin-uglifyjs": "^1.3.7"
+  }
+}

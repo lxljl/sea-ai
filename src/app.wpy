@@ -1,0 +1,137 @@
+<script>
+    import wepy from 'wepy'
+    import 'wepy-async-function'
+    export default class extends wepy.app {
+        config = {
+            pages: [
+                'views/home/home',
+                'views/home/star',
+                'views/my/record',
+                'views/my/record_details'
+            ],
+            // 系统主题颜色
+            window: {
+                backgroundTextStyle: 'light',
+                navigationBarBackgroundColor: '#0F9183',
+                navigationBarTitleText: '神器AI',
+                navigationBarTextStyle: 'white'
+            },
+            // 网络请求超时配置
+            networkTimeout: {
+                // 将60s超时时间改为20s
+                // request: 2000,
+                // connectSocket: 2000,
+                // uploadFile: 2000,
+                // downloadFile: 2000,
+            },
+            // 开启云开发
+            cloud: true,
+            // 2.3 版本中 iPad支持横屏
+            resizable: true,
+            // 自定义导航栏
+            // navigationStyle: 'custom',
+            tabBar: {
+              color: '#bfbfbf',
+              borderStyle: 'white',
+              selectedColor: '#0F9183',
+              backgroundColor: '#ffffff',
+              list: [
+                {
+                    pagePath: 'views/home/home',
+                    text: '拍照识别',
+                    iconPath: '/images/identification.png',
+                    selectedIconPath: '/images/identification_cur.png'
+                },
+                {
+                    pagePath: 'views/home/star',
+                    text: '星球广场',
+                    iconPath: '/images/star.png',
+                    selectedIconPath: '/images/star_cur.png'
+                },
+                {
+                    pagePath: 'views/my/record',
+                    text: '记录天地',
+                    iconPath: '/images/record.png',
+                    selectedIconPath: '/images/record_cur.png'
+                },
+              ]
+            }
+        }
+        constructor() {
+            super()
+            // 启用云开发
+            if (!wx.cloud) {
+                console.error('请使用 2.2.3 或以上的基础库以使用云能力')
+            } else {
+                wx.cloud.init({
+                    env: 'xxxxxxx',  // 你的环境id
+                    traceUser: true,
+                })
+            } 
+            // 使用wepy.xxx的方式请求小程序原生API都将Promise化。
+            this.use("promisify")
+        }
+        onLaunch() {}
+    }
+</script>
+<style lang="stylus">
+    .clearfix:before
+    .clearfix:after
+        /*清除浮动*/
+        content ""
+        display table
+    .clearfix:after
+        clear both
+    .clearfix
+        zoom 1
+        /*IE/7/6*/
+    .fl
+        float left
+    .fr
+        float right
+    .al
+        text-align left
+    .ac
+        text-align center
+    .ar
+        text-align right
+    .hide
+        display none
+    page
+        font-family '微软雅黑'
+    ::-webkit-scrollbar
+        width 0
+        height 0
+        color transparent
+        // display none
+    
+    // 加载动画
+    .spinner
+        position relative
+        width 654px
+        height 654px
+        &:before
+        &:after
+            content ''
+            position absolute
+            top 297px
+            left 297px
+            background-color #67CF22
+            width 30px
+            height 30px
+            animation cubemove 1.8s infinite ease-in-out
+        &:after
+            animation-delay -0.9s
+    @keyframes cubemove
+        25%
+            transform translateX(42px) rotate(-90deg) scale(0.5)
+        50%
+            transform translateX(42px) translateY(42px) rotate(-179deg)
+        50.1%
+            transform translateX(42px) translateY(42px) rotate(-180deg)
+        75%
+            transform translateX(0px) translateY(42px) rotate(-270deg) scale(0.5)
+        100%
+            transform rotate(-360deg)
+</style>
+

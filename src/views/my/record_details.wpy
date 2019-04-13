@@ -1,0 +1,191 @@
+<template lang="pug">
+    view.container
+        view.record_box
+            //- 识别图片作为背景图
+            view.record_bgimg
+                image(
+                    src="{{record.file_id}}"
+                )
+            view.record_details_box
+                //- 动物，植物，菜品识别
+                block(
+                    wx:if="{{record.baike_result.baike_info}}"
+                )
+                    //- 百科图片
+                    view.record_img(
+                        style="height:{{height}}"
+                        wx:if="{{record.baike_result}}"
+                    )
+                        image(
+                            src="{{record.baike_result.baike_info.image_url}}"
+                            @load='recordImgH'
+                        )
+                    //- 识别名称
+                    view.record_name.ac {{record.baike_result.name}}
+                    //- 识别详情
+                    view.record_description {{record.baike_result.baike_info.description}}
+                //- 文字识别
+                block(
+                    wx:if="{{record.baike_result.words_result && record.baike_result.words_result_num}}"
+                )
+                    //- 识别文字条
+                    view.words_box
+                        view.word_title.ac 点击即可复制相应内容
+                        view.words_item(
+                            wx:for="{{record.baike_result.words_result}}"
+                            wx:key="this"
+                            @tap.stop="copy({{item.words}})"
+                        )
+                            view {{item.words}}
+                        
+</template>
+
+<script>
+    import wepy from 'wepy'
+    import {
+        getIdentificationDetails,
+    } from '@/service/api/identification'
+    import {
+        parseTime,
+        showToast
+    } from '@/utils'
+    export default class RecordDetails extends wepy.page {
+        config = {
+            navigationBarTitleText: '详情',
+            enablePullDownRefresh: false,
+            // 页面禁止右滑返回手势
+            disableSwipeBack: true,
+            disableScroll: true
+        }
+        methods = {
+            // 详情图片高度
+            recordImgH({
+                detail: {
+                    height,
+                    width
+                }
+            }) {
+                let winWid = wepy.getSystemInfoSync().windowWidth - 150
+                this.height = winWid * height / width + "px"
+                this.$apply()
+            },
+            // 复制
+            async copy(value) {
+                try {
+                    // 设置系统剪贴板的内容
+                    await wepy.setClipboardData({
+                        data: value
+                    })
+                    showToast({
+                        title: `复制成功!`,
+                        icon: 'success'
+                    })
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+        }
+        data = {
+            // 记录数据
+            record: {},
+            // 图片高度
+            height: 0,
+        }
+        onShareAppMessage(res) {
+            if (res.from === 'button') {
+                console.log(res.target)
+            }
+            return {
+                title: '神器AI',
+                path: `/views/home/home`
+            }
+        }
+        // 获取首页数据
+        async getDetails(id) {
+            try {
+                this.record = await getIdentificationDetails(id)
+                console.log(this.record)
+            } catch (error) {
+                console.log(error)
+            } finally {
+                this.$apply()
+            }
+        }
+        onLoad({
+            id
+        }) {
+            this.id = id
+            this.getDetails(id)
+        }
+    }
+</script>
+
+<style lang="stylus">
+    .record_box
+        position relative
+        height 100vh
+        width 100vw
+        .record_bgimg
+            position fixed
+            top 0
+            left 0
+            right 0
+            bottom 0
+            z-index -1
+            image
+                width 100%
+                height 100%
+        .record_details_box
+            padding-bottom 20px
+            position absolute
+            top 50%
+            left 50%
+            transform translate(-50%, -50%)
+            width 654px
+            max-height 80vh
+            background-color #fff
+            border-radius 8px
+            overflow hidden
+            .record_img
+                height 300px
+                image
+                    width 100%
+                    height 100%
+            .record_name
+                line-height 80px
+                font-size 34px
+                font-weight 700
+            .record_description
+                padding 0 20px 30px
+                font-size 24px
+                text-indent 2em
+                max-height 300px
+                overflow-y scroll
+            .words_box
+                position relative
+                padding 80px 20px
+                max-height calc(80vh - 100px)
+                overflow-y scroll
+                .word_title
+                    position fixed
+                    top 0 
+                    left 0
+                    right 0
+                    line-height 60px
+                    color #333333
+                    font-weight 700
+                    font-size 34px
+                    background-color #fff
+                    border-top-right-radius 8px
+                    border-top-left-radius 8px
+                .words_item
+                    margin-top 24px
+                    padding 0 20px
+                    line-height 70px
+                    font-size 24px
+                    background-color #f0f0f0
+                    view
+                        display inline-block
+                        vertical-align middle
+                        line-height 35px
+</style>

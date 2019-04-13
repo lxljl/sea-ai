@@ -1,0 +1,207 @@
+<template lang="pug">
+    view.container
+        view.tabs_box.clearfix
+            view.tabs_item.fl.ac(
+                class="{{type == 1 ? 'cur':''}}"
+                @tap.stop="toggleTabs(1)"
+            ) 动物
+            view.tabs_item.fl.ac(
+                class="{{type == 2 ? 'cur':''}}"
+                @tap.stop="toggleTabs(2)"
+            ) 植物
+            view.tabs_item.fl.ac(
+                class="{{type == 3 ? 'cur':''}}"
+                @tap.stop="toggleTabs(3)"
+            ) 菜品
+            view.tabs_item.fl.ac(
+                class="{{type == 6 ? 'cur':''}}"
+                @tap.stop="toggleTabs(6)"
+            ) 文字
+        view.list_box
+            block(
+                wx:if="{{list.length == 0}}"
+            )
+                view.none
+                    image(
+                        src="/images/none.png"
+                    )
+            block(
+                wx:if="{{list.length > 0}}"
+            )
+                view.item(
+                    wx:for="{{list}}"
+                    wx:key="this"
+                    @tap.stop="details({{item._id}})"
+                )
+                    view.item_imgs
+                        view.spinner(
+                            wx:if="{{!item.height}}"
+                        )
+                        image(
+                            hidden="{{!item.height}}"
+                            style="height:{{item.height}}"
+                            src="{{item.file_id}}"
+                            @load='recordImgH({{index}})'
+                        )
+                    view.item_name.ac {{item.baike_result.name}}
+                    view.item_name.ac {{item.created_at}}
+</template>
+
+<script>
+    import wepy from 'wepy'
+    import {
+        getIdentificationList,
+    } from '@/service/api/identification'
+    export default class Record extends wepy.page {
+        config = {
+            navigationBarTitleText: '识别记录',
+            // 页面禁止右滑返回手势
+            disableSwipeBack: true,
+            enablePullDownRefresh: false
+        }
+        // 监控tabs的变化
+        watch = {
+            type(newValue, oldValue){
+                this.getList('PullDown')
+            }
+        }
+        methods = {
+            // 切换tabs
+            toggleTabs(type) {
+                this.type = Number(type)
+            },
+            recordImgH(index, {
+                detail: {
+                    height,
+                    width
+                }
+            }) {
+                let winWid = wepy.getSystemInfoSync().windowWidth - 48
+                this.list[index].height = winWid * height / width + "px"
+                console.log(1)
+                this.$apply()
+            },
+            details(id) {
+                this.$navigate(`/views/my/record_details`, {
+                    id
+                })
+            }
+        }
+        data = {
+            // 列表记录数据
+            list: [],
+            // tabs状态值
+            type: 1,
+            page: 1,
+            limit: 10,
+            maxPage: 0,
+            none: false
+        }
+        onShareAppMessage(res) {
+            if (res.from === 'button') {
+                console.log(res.target)
+            }
+            return {
+                title: '神器AI',
+                path: `/views/home/home`
+            }
+        }
+        // 获取首页数据
+        async getList(sign) {
+            try {
+                let {
+                    list,
+                    last_page,
+                    total
+                } = await getIdentificationList(this.type, this.page, this.limit, 3394753)
+                if (this.page == 1 && sign) {
+                    this.list = list
+                } else {
+                    this.list = [...this.list, ...list]
+                }
+                this.count = total
+                this.maxPage = last_page
+            } catch (error) {
+                console.log(error)
+            } finally {
+                this.$apply()
+                if(this.page == 1 && sign) {
+                    wepy.pageScrollTo({
+                        scrollTop: 0,
+                        duration: 500
+                    })
+                }
+            }
+        }
+        // 上拉刷新
+        onReachBottom() {
+            if (this.page == this.maxPage) {
+                this.none = true
+            } else {
+                this.page++
+                this.getList()
+            }
+        }
+        async onLoad() {
+            try {
+                this.getList('PullDown')
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }
+</script>
+
+<style lang="stylus">
+    page
+        padding-bottom 180px
+    .tabs_box
+        background-color #fff
+        position fixed
+        top 0
+        left 0
+        right 0
+        .tabs_item
+            position relative
+            width 25%
+            line-height 98px
+            &:before
+                content ''
+                position absolute
+                top 0
+                left 100%
+                width 0
+                height 100%
+                border-bottom 4px solid red
+                transition 0.2s all linear
+            &.cur:before
+                width 100%
+                left 0
+            &.cur ~ &:before
+                left 0
+    .list_box
+        padding-top 132px
+        .none
+            margin 0 auto
+            width 400px
+            height 400px
+            image
+                width 100%
+                height 100%
+        .item
+            margin 0 auto
+            width 654px
+            &:not(:first-child)
+                margin-top 24px
+            .item_imgs
+                box-shadow 3px 1px 7px rgba(150,150,150,0.3)
+                border-radius 8px
+                overflow hidden
+                image
+                    width 100%
+                    height 0
+            .item_name
+                color #333333
+            .item_date
+                color #666666
+</style>

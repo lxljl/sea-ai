@@ -1,0 +1,77 @@
+{
+	"description": "项目配置文件。",
+	"packOptions": {
+		"ignore": []
+	},
+	"setting": {
+		"urlCheck": true,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true,
+		"autoAudits": false
+	},
+	"compileType": "miniprogram",
+	"libVersion": "2.6.4",
+	"appid": "wx162fc6bf32f43f7c",
+	"projectname": "sea-ai",
+	"svr": "/",
+	"client": "/",
+	"qcloudRoot": "/",
+	"miniprogramRoot": "dist/",
+	"cloudfunctionRoot": "cloudFns/",
+	"pluginRoot": "/",
+	"scripts": {},
+	"simulatorType": "wechat",
+	"simulatorPluginLibVersion": {},
+	"cloudfunctionTemplateRoot": "cloudfunctionTemplate",
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"plugin": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"list": []
+		},
+		"miniprogram": {
+			"current": 4,
+			"list": [
+				{
+					"id": 0,
+					"name": "首页",
+					"pathName": "views/home/home",
+					"query": ""
+				},
+				{
+					"id": -1,
+					"name": "我的记录",
+					"pathName": "views/my/record",
+					"query": "",
+					"scene": null
+				},
+				{
+					"id": -1,
+					"name": "星球",
+					"pathName": "views/home/star",
+					"query": "",
+					"scene": null
+				},
+				{
+					"id": 3,
+					"name": "详情",
+					"pathName": "views/my/record_details",
+					"query": "id=XKTP1sDR1TiNTe-Q",
+					"scene": null
+				}
+			]
+		}
+	}
+}
