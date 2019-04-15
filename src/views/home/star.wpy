@@ -172,6 +172,7 @@
         top 0
         left 0
         right 0
+        z-index 999
         .tabs_item
             position relative
             width 25%

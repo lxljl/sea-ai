@@ -58,7 +58,7 @@ export function showToast (obj) {
  *      cancelText: 取消按钮的文字，默认为"取消"，最多 4 个字符,
  *      cancelColor: 取消按钮的文字颜色，默认为"#000000",
  *      confirmText: 确定按钮的文字，默认为"确定"，最多 4 个字符,
- *      confirmColor: 确定按钮的文字颜色，默认为"#00aaff",
+ *      confirmColor: 确定按钮的文字颜色，默认为"#0F9183",
  *  }
  *  返回Promise
  */ 
@@ -70,7 +70,7 @@ export function showModal (obj) {
         cancelText = '取消', 
         cancelColor = '#000000', 
         confirmText = '确定', 
-        confirmColor = '#00aaff'
+        confirmColor = '#0F9183'
     } = obj || {}
     return wepy.showModal({
         title,

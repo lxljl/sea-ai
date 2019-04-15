@@ -43,15 +43,28 @@
                             src="{{item.file_id}}"
                             @load='recordImgH({{index}})'
                         )
+                        view.item_soft_del.fl(
+                            @tap.stop="setPlaza({{item._id}},{{index}},{{item.delete}})"
+                        ) {{item.delete == 1? '展示在广场': '取消展示'}}
+                        view.item_del.fl(
+                            @tap.stop="delIdentification({{item._id}},{{index}})"
+                        ) 删除
                     view.item_name.ac {{item.baike_result.name}}
                     view.item_name.ac {{item.created_at}}
+
 </template>
 
 <script>
     import wepy from 'wepy'
     import {
         getIdentificationList,
+        delIdentification,
+        setPlaza
     } from '@/service/api/identification'
+    import {
+        showModal,
+        showToast
+    } from '@/utils'
     export default class Record extends wepy.page {
         config = {
             navigationBarTitleText: '识别记录',
@@ -81,11 +94,48 @@
                 console.log(1)
                 this.$apply()
             },
+            // 详情
             details(id) {
                 this.$navigate(`/views/my/record_details`, {
                     id
                 })
+            },
+            // 删除记录
+            async delIdentification(id, index) {
+                try {
+                    let {
+                        confirm
+                    } = await showModal({
+                        title: '提示',
+                        content: '是否删除记录？'
+                    })
+                    if(!confirm) return false 
+                    // 删除
+                    let data = await delIdentification(id)
+                    // 删除当前索引值所在的数组项
+                    this.list.splice(index, 1)
+                } catch (error) {
+                    console.log(error)
+                } finally {
+                    this.$apply()
+                }
+            },
+            // 在广场展示
+            async setPlaza(id, index, mark) {
+                try {
+                    let data = await setPlaza(id, mark)
+                    showToast({
+                        title: `设置成功`,
+                        icon: 'success'
+                    })
+                    this.list[index].delete = !mark ? 1 : 0
+                } catch (error) {
+                    console.log(error)
+                } finally {
+                    this.$apply()
+                }
             }
+
         }
         data = {
             // 列表记录数据
@@ -119,6 +169,7 @@
                 } else {
                     this.list = [...this.list, ...list]
                 }
+                console.log(this.list)
                 this.count = total
                 this.maxPage = last_page
             } catch (error) {
@@ -161,6 +212,7 @@
         top 0
         left 0
         right 0
+        z-index 999
         .tabs_item
             position relative
             width 25%
@@ -194,14 +246,31 @@
             &:not(:first-child)
                 margin-top 24px
             .item_imgs
+                position relative
                 box-shadow 3px 1px 7px rgba(150,150,150,0.3)
                 border-radius 8px
                 overflow hidden
                 image
                     width 100%
                     height 0
+                .item_soft_del
+                .item_del
+                    padding 12px
+                    position absolute
+                    top 50%
+                    transform translateY(-50%)
+                    color #fff
+                    font-size 24px
+                    width 20px
+                .item_soft_del
+                    left 0
+                    background-color #0F9183
+                .item_del 
+                    right 0
+                    background-color #ff002a
             .item_name
                 color #333333
             .item_date
                 color #666666
+                    
 </style>
