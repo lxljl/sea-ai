@@ -18,6 +18,12 @@
 
 ### 安装使用
 
+#### 安装（更新） wepy 命令行工具。
+
+```console
+npm install wepy-cli -g
+```
+
 #### 安装依赖
 
 ```console
@@ -27,7 +33,7 @@ npm install
 #### 开发实时编译
 
 ```console
-npm run
+npm run dev
 ```
 
 #### 开发者工具导入项目
