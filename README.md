@@ -8,11 +8,16 @@
     <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/home.jpg" alt="菊花码" width="200" height="200">
 </p>
 
+## 特别鸣谢  
+* UI设计师 - [Rolland罗兰](https://www.zcool.com.cn/u/16564540)
+
+
+## 效果预览
 <p align="center">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show1.jpg" alt="效果1">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show2.jpg" alt="效果2">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show3.jpg" alt="效果3">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show4.jpg" alt="效果4">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show1.png" alt="效果1">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show2.png" alt="效果2">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show3.png" alt="效果3">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show4.png" alt="效果4">
 </p>
 
 ### 学习本项目
