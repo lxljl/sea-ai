@@ -1,5 +1,5 @@
 {
-    "name": "getIdentificationList",
+    "name": "getAnalysis",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -9,6 +9,7 @@
     "author": "youself",
     "license": "ISC",
     "dependencies": {
-        "wx-server-sdk": "latest"
+        "wx-server-sdk": "latest",
+        "request-promise": "latest"
     }
 }

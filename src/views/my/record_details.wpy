@@ -1,53 +1,160 @@
 <template lang="pug">
     view.container
-        view.record_box
-            //- 识别图片作为背景图
-            view.record_bgimg
-                image(
-                    src="{{record.file_id}}"
+        Nav(
+            :showIcon.sync="showIcon" 
+            :title.sync="title"
+        )
+        //- 文字类
+        block(
+            wx:if="{{record.type == 6}}"
+        )
+            view.record_text_box
+                view.record_text_list
+                    block(
+                        wx:for="{{record.baike_result.words_result}}"
+                        wx:key="index"
+                    )
+                        view.record_text_item(
+                            class="{{recordTextIndex == index? 'cur': ''}}"
+                            @tap.stop="selectRecordTextIndex({{index}})"
+                        ) {{item.words}}
+        //- 动物，植物，菜品识别
+        block(
+            wx:if="{{record.type == 1 || record.type == 2 || record.type == 3 || record.type == 4}}"
+        )
+            view.record_box
+                //- 识别图片作为背景图
+                view.record_big(
+                    @tap.stop="previewImage"
                 )
-            view.record_details_box
-                //- 动物，植物，菜品识别
-                block(
-                    wx:if="{{record.baike_result.baike_info}}"
-                )
-                    //- 百科图片
-                    view.record_img(
-                        style="height:{{height}}"
-                        wx:if="{{record.baike_result}}"
+                    block(
+                        wx:if="{{record.baike_result_list[baikeResultIndex].baike_info.image_url}}"
                     )
                         image(
-                            src="{{record.baike_result.baike_info.image_url}}"
-                            @load='recordImgH'
+                            src="{{record.baike_result_list[baikeResultIndex].baike_info.image_url}}"
+                            mode="aspectFill"
                         )
-                    //- 识别名称
-                    view.record_name.ac {{record.baike_result.name}}
-                    //- 识别详情
-                    view.record_description {{record.baike_result.baike_info.description}}
+                    block(
+                        wx:else
+                    )
+                        image(
+                            src="/images/goFuckit.svg"
+                        )
+                view.record_result_list
+                    block(
+                        wx:for="{{record.baike_result_list}}"
+                        wx:key="index"
+                    )
+                        view.record_result_item(
+                            wx:if="{{baikeResultIndex != index}}"
+                            @tap.stop="setResultIndex({{index}})"
+                        )
+                            //- 百科图片
+                            view.record_result_item_img
+                                block(
+                                    wx:if="{{item.baike_info.image_url}}"
+                                )
+                                    image(
+                                        src="{{item.baike_info.image_url}}"
+                                        mode="aspectFill"
+                                    )
+                                block(
+                                    wx:else
+                                )
+                                    image(
+                                        src="/images/goFuckit.svg"
+                                    )
+                            view.record_result_item_score_box.ac
+                                view.record_result_item_score_title 匹配结果
+                                block(
+                                    wx:if="{{item.score * 100 > 80}}"
+                                )
+                                    view.record_result_item_score.gt80 {{item.score * 100 | 0}}
+                                block(
+                                    wx:elif="{{item.score * 100 > 60}}"
+                                )
+                                    view.record_result_item_score.gt60 {{item.score * 100 | 0}}
+                                block(
+                                    wx:elif="{{item.score * 100 > 40}}"
+                                )
+                                    view.record_result_item_score.gt40 {{item.score * 100 | 0}}
+                                block(
+                                    wx:else
+                                )
+                                    view.record_result_item_score.gt20 {{item.score * 100 | 0}}
+                //- 简介
+                view.outline_box
+                    //- 名称
+                    view.outline_name {{record.baike_result_list[baikeResultIndex].name}}
+                    //- 详情
+                    view.outline_description {{record.baike_result_list[baikeResultIndex].baike_info.description}}
+                //- 爬虫百科 假如有即显示
+                block(
+                    wx:if="{{record.basicInfo.length > 0}}"
+                )
+
+                    view.basic_list(
+                        wx:if="{{!basicInfoFlag}}"
+                    )
+                        view.basic_item(
+                            wx:for="{{record.basicInfo}}"
+                            wx:key="index"
+                        )
+                            view.basic_item_name {{item.name}}：
+                            view.basic_item_value {{item.value}}
+                    view.basic_loading(
+                        wx:elif="{{basicInfoFlag}}"
+                    )
+                        image(
+                            src="/images/loading.svg"
+                        )
+        //- 识别原始栏
+        view.discern_box.ac
+            view.discern_original
+                image(
+                    src="{{record.file_id}}"
+                    mode="aspectFill"
+                    @tap.stop="previewImage('original')"
+                )
+            view.discern_restart_btn(
+                wx:if="{{from == 'home'}}"
+                @tap.stop="retake"
+            )
+                text.icon.icon_picture
+                | RETAKE
+            view.discern_time(
+                wx:else
+            ) 摄于 {{record.created_at}}
+            view.discern_save_btn(
+                @tap.stop="save"
+            )
                 //- 文字识别
                 block(
-                    wx:if="{{record.baike_result.words_result && record.baike_result.words_result_num}}"
+                    wx:if="{{record.type == 6}}"
                 )
-                    //- 识别文字条
-                    view.words_box
-                        view.word_title.ac 点击即可复制相应内容
-                        view.words_item(
-                            wx:for="{{record.baike_result.words_result}}"
-                            wx:key="this"
-                            @tap.stop="copy({{item.words}})"
-                        )
-                            view {{item.words}}
+                    view.discern_save_icon.icon.icon_copy
+                    view.discern_save_text 剪切
+                //- 图片识别类
+                block(
+                    wx:if="{{record.type == 1 || record.type == 2 || record.type == 3 || record.type == 4}}"
+                )
+                    view.discern_save_icon.icon.icon_save
+                    view.discern_save_text 保存
                         
 </template>
 
 <script>
     import wepy from 'wepy'
+    import Nav from '@/components/nav'
     import {
+        getAnalysis,
         getIdentificationDetails,
-    } from '@/service/api/identification'
+        setCoverImage
+    } from '@/service/api/analysis'
     import {
         parseTime,
-        showToast
+        showToast,
+        cloudFn
     } from '@/utils'
     export default class RecordDetails extends wepy.page {
         config = {
@@ -55,49 +162,167 @@
             enablePullDownRefresh: false,
             // 页面禁止右滑返回手势
             disableSwipeBack: true,
-            disableScroll: true
+            navigationStyle: 'custom',
+        }
+        components = {
+            Nav
+        }
+        watch = {
+            resultIndex(newVal, oldVal){
+                this.basicInfoFlag = true
+                this.$apply()
+                this.getBaiKeCrawler()
+            }
+        }
+        computed = {
+            resultIndex () {
+                return this.baikeResultIndex
+            }
         }
         methods = {
-            // 详情图片高度
-            recordImgH({
-                detail: {
-                    height,
-                    width
-                }
-            }) {
-                let winWid = wepy.getSystemInfoSync().windowWidth - 150
-                this.height = winWid * height / width + "px"
-                this.$apply()
+            // 文字选择
+            selectRecordTextIndex(index) {
+                this.recordTextIndex = index
             },
-            // 复制
-            async copy(value) {
+            // 保存
+            async save() {
                 try {
-                    // 设置系统剪贴板的内容
-                    await wepy.setClipboardData({
-                        data: value
-                    })
+                    if(this.record.type == 1 || this.record.type == 2 || this.record.type == 3 || this.record.type == 4) {
+                        let {
+                            path
+                        } = await wepy.getImageInfo({
+                            src: this.record.baike_result_list[this.baikeResultIndex].baike_info.image_url
+                        })
+                        await wepy.saveImageToPhotosAlbum({
+                            filePath: path
+                        })
+                        showToast({
+                            title: `保存成功`,
+                            icon: 'success'
+                        })
+                    } else if(this.record.type == 6) {
+                        // 设置系统剪贴板的内容
+                        await wepy.setClipboardData({
+                            data: this.record.baike_result.words_result[this.recordTextIndex].words
+                        })
+                        showToast({
+                            title: `复制成功!`,
+                            icon: 'success'
+                        })
+                    }
+                } catch (error) {
+                    console.log(error)
                     showToast({
-                        title: `复制成功!`,
-                        icon: 'success'
+                        title: `操作失败`,
+                        icon: 'error'
+                    })
+                }
+            },
+            // 查看大图
+            async previewImage(mode) {
+                try {
+                    let url
+                    if(mode == 'original') {
+                        url = this.record.file_id
+                    } else {
+                        url = this.record.baike_result_list[this.baikeResultIndex].baike_info.image_url
+                    }
+                    await wepy.previewImage({
+                        current: url,
+                        urls: [url]
+                    })
+                } catch (error) {
+                     showToast({
+                        title: `暂无此图`,
+                        icon: 'error'
+                    })
+                }
+            },
+            // 重新拍照
+            async retake() {
+                try {
+                    let {
+                        tempFilePaths
+                    }  = await wepy.chooseImage({
+                        count: '1', //最多可以选择的图片张数
+                        sizeType: ['original', 'compressed'],
+                        sourceType: ['album', 'camera'],
+                    }),
+                    type = this.type
+                    let id = await getAnalysis(tempFilePaths[0], type)
+                    this.$redirect(`/views/my/record_details`, {
+                        id,
+                        from: 'home',
+                        type
                     })
                 } catch (error) {
                     console.log(error)
                 }
+            },
+            setResultIndex(index) {
+                this.baikeResultIndex = index
             }
         }
         data = {
+            title: '简介',
+            // 记录id
+            id: '',
+            // 来自哪里?
+            from: '',
+            // 类型
+            type: '',
             // 记录数据
             record: {},
-            // 图片高度
-            height: 0,
+            // 百科loading
+            basicInfoFlag: false,
+            // 保存按钮
+            saveBtn: false,
+            baikeResultIndex: 0,
+            recordTextIndex: 0,
         }
         onShareAppMessage(res) {
             if (res.from === 'button') {
                 console.log(res.target)
             }
             return {
-                title: '神器AI',
+                title: '识图AI',
                 path: `/views/home/home`
+            }
+        }
+        // 百科
+        async getBaiKeCrawler() {
+            try {
+                if(this.record.type == 1 || this.record.type == 2 || this.record.type == 4) {
+                    let {
+                        basicInfo
+                    } = await cloudFn('getBaiKeCrawler',{
+                        query: this.record.baike_result_list[this.baikeResultIndex].name
+                    }, (this.record.baike_result_index != this.baikeResultIndex)),
+                    flag = false
+                    for (let i = 0; i < basicInfo.length; i++) {
+                        let item = basicInfo[i]
+                        if(item.name == '界') {
+                            if(item.value == '植物界' || item.value == '动物界') {
+                                flag = true
+                                break
+                            }
+                        } else if (item.name == '车型尺寸' || item.name == '油耗' || item.name == '车身重量') {
+                            flag = true
+                            break
+                        }
+                    }
+                    if(flag) {
+                        this.record.basicInfo = basicInfo
+                        this.basicInfoFlag = false
+                    } else {
+                        this.record.basicInfo = []
+                        this.basicInfoFlag = true
+                    }
+                }
+            } catch (error) {
+                console.log(error)
+            } finally {
+                this.$apply()
             }
         }
         // 获取首页数据
@@ -105,6 +330,7 @@
             try {
                 this.record = await getIdentificationDetails(id)
                 console.log(this.record)
+                this.baikeResultIndex = this.record.baike_result_index ? this.record.baike_result_index: 0
             } catch (error) {
                 console.log(error)
             } finally {
@@ -112,80 +338,209 @@
             }
         }
         onLoad({
-            id
+            id,
+            from,
+            type
         }) {
             this.id = id
+            // 来自何处 & 类型？
+            if(from && type) {
+                this.title = from == 'home' ? '识别结果': '简介'
+                this.type = type
+                this.from = from
+            }
+            this.$apply()
             this.getDetails(id)
         }
     }
 </script>
 
 <style lang="stylus">
+    page
+        padding-bottom 180px
+    .record_text_box
+        position fixed
+        top 50%
+        left 50%
+        transform translate(-50%, -50%)
+        width 504px
+        height 800px
+        overflow-y scroll
+        .record_text_list
+            .record_text_item
+                padding 5px
+                border 1px dashed transparent
+                line-height 36px
+                color #292C33
+                font-size 28px
+                &.cur
+                    border 1px dashed #3E65B3
+                &:not(:first-child)
+                    margin-top 32px
     .record_box
-        position relative
-        height 100vh
-        width 100vw
-        .record_bgimg
-            position fixed
-            top 0
-            left 0
-            right 0
-            bottom 0
-            z-index -1
+        .record_big
+            position relative
+            height 460px
+            overflow hidden
+            background-color #f0f0f0
             image
+                position relative
+                transform scale(1.25)
                 width 100%
                 height 100%
-        .record_details_box
-            padding-bottom 20px
-            position absolute
-            top 50%
-            left 50%
-            transform translate(-50%, -50%)
-            width 654px
-            max-height 80vh
-            background-color #fff
-            border-radius 8px
-            overflow hidden
-            .record_img
-                height 300px
-                image
-                    width 100%
-                    height 100%
-            .record_name
-                line-height 80px
-                font-size 34px
-                font-weight 700
-            .record_description
-                padding 0 20px 30px
-                font-size 24px
-                text-indent 2em
-                max-height 300px
-                overflow-y scroll
-            .words_box
-                position relative
-                padding 80px 20px
-                max-height calc(80vh - 100px)
-                overflow-y scroll
-                .word_title
-                    position fixed
-                    top 0 
-                    left 0
-                    right 0
-                    line-height 60px
-                    color #333333
-                    font-weight 700
-                    font-size 34px
-                    background-color #fff
-                    border-top-right-radius 8px
-                    border-top-left-radius 8px
-                .words_item
-                    margin-top 24px
-                    padding 0 20px
-                    line-height 70px
-                    font-size 24px
+                z-index 2
+        .record_result_list
+            position relative
+            padding 32px 32px 24px
+            display flex
+            &:after
+                content ''
+                margin 0 auto
+                position absolute
+                bottom 0
+                left 0
+                right 0
+                width 686px
+                height 2px
+                background-color #E5E5E5
+            .record_result_item
+                margin 0 5px
+                width 164px
+                .record_result_item_img
+                    width 164px
+                    height 164px
                     background-color #f0f0f0
-                    view
-                        display inline-block
-                        vertical-align middle
-                        line-height 35px
+                    image
+                        width 100%
+                        height 100%
+                .record_result_item_score_box
+                    padding 16px 0
+                    display flex
+                    justify-content space-between
+                    line-height 88px
+                    align-items center
+                    .record_result_item_score_title
+                        margin-left 4px
+                        width 48px
+                        height 62px
+                        line-height 30px
+                        font-size 24px
+                        color #292C33
+                    .record_result_item_score
+                        position relative
+                        width 88px
+                        height 62px
+                        line-height 62px
+                        font-size 56px
+                        font-weight 700
+                        &:after
+                            content '%'
+                            font-size 20px
+                        &:before
+                            content ''
+                            position absolute
+                            top 50%
+                            left -12px
+                            transform translateY(-50%) scaleX(0.5)
+                            width 2px
+                            height 48px
+                            background-color #E5E5E5
+                        &.gt80
+                            color #E61717
+                        &.gt60
+                            color #0E948A
+                        &.gt40
+                            color #3E65B3
+                        &.gt20
+                            color #FFC758
+        .outline_box
+            padding 32px
+            color #292C33
+            .outline_name
+                font-size 32px
+                font-weight 700
+                line-height 44px
+            .outline_description
+                padding-top 16px
+                font-size 26px
+                text-indent 2em
+                line-height 36px
+        .basic_list
+            padding 41px 32px
+            display flex
+            flex-wrap wrap
+            justify-content space-between
+            .basic_item
+                padding 5px 0
+                display flex
+                width calc(calc(100% / 2) - 10px)
+                line-height 36px
+                font-size 26px
+                .basic_item_name
+                    color #A7A7A7
+                    white-space nowrap
+                .basic_item_value
+                    color #292C33
+        .basic_loading
+            margin 0 auto
+            width  240px
+            height 240px
+            image
+                display block
+                width 100%
+                height 100%
+    .discern_box
+        position fixed
+        bottom 0
+        left 0
+        right 0
+        height 94px
+        line-height 94px
+        display flex
+        align-items center
+        justify-content space-between
+        color #FFFFFF
+        z-index 999
+        background-color #3E65B3
+        .discern_original
+            margin-left 32px
+            width 64px
+            height 64px
+            image
+                display block
+                width 100%
+                height 100%
+        .discern_restart_btn
+            position relative
+            width 256px
+            height 64px
+            line-height 60px
+            color #3E65B3
+            font-size 32px
+            background-color #fff
+            border-radius 32px
+            &:after
+                content ''
+                position absolute
+                top 50%
+                left 50%
+                width 244px
+                height 52px
+                border 1px solid #3E65B3
+                transform translate(-50%, -50%)
+                border-radius 32px
+            .icon_picture
+                font-size 40px
+                display inline-block
+                transform translateY(4px)
+        .discern_time
+            width 320px
+            font-size 24px
+        .discern_save_btn
+            margin-right 18px
+            line-height 1
+            .discern_save_icon
+                font-size 50px
+            .discern_save_text
+                font-size 20px
 </style>

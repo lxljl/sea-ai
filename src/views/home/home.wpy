@@ -1,44 +1,81 @@
 <template lang="pug">
     view.container
-        view.home_bg
-            image(
-                src="/images/home_bg.png"
-            )
-        view.identification_box.ac
-            button.identification_btn(
-                wx:for="{{classify}}"
-                wx:key="this"
+        Nav(
+            :showIcon.sync="showIcon" 
+            title="识图AI"
+        )
+        view.logo_box
+            view.logo_greet.ac {{greet}}
+            view.logo_image
+                image(
+                    src="/images/logo.png"
+                )
+            view.logo_title.ac [ 手机拍照识别物体的智能AI小程序 ]
+        view.identification_box
+            button.identification_btn.ac(
                 open-type="getUserInfo"
-                @getuserinfo="photograph({{item.type}})"
-            ) {{item.name}}
+                @getuserinfo="photograph"
+            )
+                text.icon.icon_picture
+                | 拍照识别
+            view.identification_type 选择识别类型：
+            view.identification_list
+                view.identification_item.ac(
+                    class="{{index == classifyIndex ? 'cur': ''}}"
+                    wx:for="{{classify}}"
+                    wx:key="this"
+                    @tap.stop="switchClassify({{index}})"
+                )
+                    view.identification_item_icon(
+                        class="icon {{item.icon}}"
+                    )
+                    view.identification_item_title {{item.name}}
 </template>
 
 <script>
     import wepy from 'wepy'
+    import Nav from '@/components/nav'
     import {
         login,
         setUserInfo
     } from '@/service/api/user'
     import {
-        getRecognition,
-    } from '@/service/api/identification'
+        getAnalysis,
+    } from '@/service/api/analysis'
     import {
-        showModal
+        showModal,
+        sayHello
     } from '@/utils'
     export default class Home extends wepy.page {
         config = {
             navigationBarTitleText: '识别AI',
             // 页面禁止右滑返回手势
             disableSwipeBack: true,
-            enablePullDownRefresh: false
+            enablePullDownRefresh: false,
+            navigationStyle: 'custom',
+        }
+        components = {
+            Nav
         }
         methods = {
-            async photograph(type = 'plant', {
+            adError(e) {
+                if(e.detail.errCode != 3) {
+                    this.isAd = true
+                }
+            },
+            switchClassify(index) {
+                this.classifyIndex = index
+            },
+            async photograph({
                 detail
             }) {
                 try {
                     if(!detail.userInfo) throw {code: 7500, data:[], info: '要授权才能使用哦！'}
-                    await setUserInfo(detail.userInfo)
+                    if(!this.userInfo) {
+                        await setUserInfo(detail.userInfo)
+                        this.userInfo = detail.userInfo
+                    }
+                    let type = this.classify[this.classifyIndex].type
                     let {
                         tempFilePaths
                     }  = await wepy.chooseImage({
@@ -46,19 +83,14 @@
                         sizeType: ['original', 'compressed'],
                         sourceType: ['album', 'camera'],
                     })
-                    let id = await getRecognition(tempFilePaths[0], type)
+                    let id = await getAnalysis(tempFilePaths[0], type)
                     this.$navigate(`/views/my/record_details`, {
-                        id
+                        id,
+                        from: 'home',
+                        type
                     })
                 } catch (error) {
                     console.log(error)
-                    if(error.code) {
-                        showModal({
-                            title: '提示',
-                            content: `${error.info}`,
-                            showCancel: false, //是否显示取消按钮,
-                        })
-                    }
                 } finally {
                     this.$apply()
                 }
@@ -66,32 +98,44 @@
         }
         data = {
             classify: [{
-                name: '动物识别',
+                name: '动物类',
+                icon: 'icon_animal',
                 type: 'animal'
             },{
-                name: '植物识别',
+                name: '植物类',
+                icon: 'icon_plant',
                 type: 'plant'
             },{
-                name: '菜品识别',
+                name: '文字类',
+                icon: 'icon_text',
+                type: 'ocr'
+            },{
+                name: '菜品类',
+                icon: 'icon_cate',
                 type: 'dish'
             },{
-                name: '文字识别',
-                type: 'ocr'
-            }]
+                name: '汽车类',
+                icon: 'icon_car',
+                type: 'car'
+            }],
+            classifyIndex: 0,
+            userInfo: null,
+            greet: 'Hi~'
         }
         onShareAppMessage(res) {
             if (res.from === 'button') {
                 console.log(res.target)
             }
             return {
-                title: '神器AI',
+                title: '识图AI',
                 path: `/views/home/home`
             }
         }
         async onLoad() {
             try {
+                this.greet = sayHello()
                 let data = await login()
-                console.log(data)
+                this.$apply()
             } catch (error) {
                 console.log(error)
             }
@@ -100,30 +144,109 @@
 </script>
 
 <style lang="stylus">
-    .home_bg
-        position fixed
-        top 0
-        left 0
-        right 0
-        bottom 0
-        image
-            width 100%
-            height 100%
-    .identification_box
-        position fixed
-        top 50%
-        left 50%
-        transform translate(-50%, -50%)
-        .identification_btn
-            margin 0 auto
-            height 98px
-            width 400px
-            line-height 98px
-            font-size 40px
-            font-weight 700
+    .logo_box
+        position relative
+        .logo_greet_ai
+        .logo_greet
+            position absolute
+            top 54px
+            right 64px
+            width 138px
+            height 34px
+            line-height 34px
+            font-size 24px
             color #fff
-            border-radius 98px
-            background linear-gradient(rgba( 15, 145, 131, .7), rgba( 0, 217, 188, .7))
-            &:not(:first-child)
-                margin-top 24px
+            border-radius 28px
+            background-color #FFC758
+            &:before
+                content ''
+                position absolute
+                left 14px
+                bottom -25px
+                width 0
+                height 0
+                border 15px solid transparent
+                border-top 20px solid #FFC758
+        .logo_greet_ai
+            padding 0 10px
+            top auto
+            bottom 230px
+            right auto
+            left 64px
+            width auto
+            max-width 250px
+            height auto
+            &:before
+                left 50%
+                bottom -25px
+                transform translateX(-50%)
+        .logo_image
+            padding-top 100px
+            margin 0 auto
+            width 458px
+            height 164px
+            image
+                display block
+                width 100%
+                height 100%
+        .logo_title
+            margin-top 24px
+            font-size 26px
+            color #656566
+    .identification_box
+        padding-top 48px
+        margin 0 auto
+        width 622px
+        .identification_btn
+            height 104px
+            line-height 104px
+            font-size 36px
+            color #fff
+            border-radius 8px
+            background #3E65B3
+            .icon_picture
+                font-size 50px
+                display inline-block
+                transform translateY(7px)
+        .identification_type
+            padding-top 48px
+            line-height 36px
+            font-size 26px
+            color #292C33
+        .identification_list
+            padding-top 48px
+            display flex
+            flex-wrap wrap
+            justify-content space-between
+            .identification_item
+                width calc(calc(100% / 4) - 10px)
+                .identification_item_icon
+                    margin 0 auto
+                    width 80px
+                    height 80px
+                    line-height 80px
+                    color #525866
+                    font-size 50px
+                    border 1px solid #C9C9C9
+                    border-radius 50%
+                    box-sizing border-box
+                &.cur
+                    .identification_item_icon
+                    .identification_item_title
+                        color #3E65B3
+                    .identification_item_icon
+                        border-color #3E65B3
+                .identification_item_title
+                    line-height 58px
+                    font-size 24px
+                    color #292C33
+    .home_ad_box
+        margin-top 192px
+        .home_ad_line
+            margin 0 auto
+            width 686px
+            height 2px
+            background-color #E5E5E5
+        .home_ad
+            margin-top 20px
 </style>

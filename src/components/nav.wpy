@@ -1,0 +1,183 @@
+<template lang="pug">
+    view(
+        style="height:{{titleBarHeight}}px;padding-top:{{statusBarHeight}}px"
+    )
+        view.header(
+            style="height:{{titleBarHeight}}px;padding-top:{{statusBarHeight}}px"
+        )
+            view.title_bar(
+                wx:if="{{showIcon}}"
+                class="{{isFootprint || !isBack? 'cur': ''}}"
+                style="height:{{menuButton.height}}px;right:{{menuButton.left}}px;top:{{menuButton.top}}px;width:{{isFootprint || !isBack ? menuButton.width / 2: menuButton.width}}px;border-radius:{{menuButton.height}}px;"
+            )
+                block(
+                    wx:if="{{isFootprint}}"
+                )
+                    view.footprint.icon.icon_footprint(
+                        @tap="headerFootprint"
+                    )
+                block(
+                    wx:else
+                )
+                    block(
+                        wx:if="{{isBack}}"
+                    )
+                        view.back.icon.icon_back(
+                            style="width:{{menuButton.width / 2}}px;"
+                            @tap="headerBack"
+                        )
+                    view.home.icon.icon_home(
+                        style="width:{{menuButton.width / 2}}px;"
+                        @tap="headerHome"
+                    )
+            view.header_title {{title}}
+        view.loading_wrap
+            image.loading_svg(
+                src="/images/loading.svg"
+            )
+</template>
+
+<script>
+    import wepy from 'wepy'
+    import {
+        isBack
+    } from '@/utils'
+    export default class Nav extends wepy.component {
+        props = {
+            title: {
+                type: String,
+                default: '识图AI'
+            },
+            showIcon: {
+                type: Boolean,
+                default: true
+            }
+        };
+        data = {
+            statusBarHeight: 0,
+            titleBarHeight: 0,
+            isFootprint: false,
+            isBack: false,
+            menuButton:{}
+        };
+        methods = {
+            headerBack() {
+                wepy.navigateBack({
+                    delta: 1,
+                    fail() {
+                        wepy.reLaunch({
+                            url: '/views/home/home'
+                        })
+                    }
+                })
+            },
+            headerFootprint() {
+                wepy.navigateTo({
+                    url: '/views/my/record'
+                })
+            },
+            headerHome() {
+                wepy.reLaunch({
+                    url: '/views/home/home'
+                })
+            }
+        };
+        async onLoad() {
+            try {
+                let {
+                    model,
+                    statusBarHeight
+                } = await wepy.getSystemInfo()
+                if (model.indexOf('iPhone') !== -1) {
+                    this.titleBarHeight = 44
+                } else {
+                    this.titleBarHeight = 48
+                }
+                this.menuButton = wx.getMenuButtonBoundingClientRect()
+                this.isBack = isBack()
+                if(this.$wxpage.route == 'views/home/home') {
+                    this.isFootprint = true
+                } else {
+                    this.isFootprint = false
+                }
+                this.statusBarHeight = statusBarHeight
+                this.$apply()
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }
+</script>
+
+<style lang="stylus">
+    .loading_svg
+        width 46px
+        height 46px
+    .loading_wrap
+        height 100%
+        display flex
+        justify-content center
+        align-items center
+        margin-bottom 20px
+        image
+            background-color transparent
+    .header
+        display flex
+        align-items center
+        top 0
+        position fixed
+        width 100%
+        background-color #fff
+        z-index 99999
+        .footprint
+        .back
+        .home
+            font-size 50px
+            display flex
+            align-items center
+            justify-content center
+        .footprint
+            &::before
+                background linear-gradient(180deg,rgba(128,170,255,1) 0%,rgba(80,130,230,1) 49%,rgba(62,101,179,1) 100%)
+                -webkit-background-clip text
+                color transparent
+                font-size 54px
+        .title_bar
+            position absolute
+            width 174px
+            height 63px
+            border-radius 34px
+            display flex
+            align-items center
+            justify-content space-around
+            border 1px solid #E5E5E5
+            box-sizing border-box
+            &:before
+                content ''
+                position absolute
+                top 50%
+                left 50%
+                transform translate(-50%, -50%) scaleX(.5)
+                width 2px
+                height 36px
+                background-color #E5E5E5
+            &.cur
+                left 24px !important
+                width 64px !important
+                &:before
+                    display none
+            image
+                width 32px
+                height 32px
+                background transparent
+                vertical-align top
+        .header_title
+            position absolute
+            left 50%
+            font-size 36px
+            transform translateX(-50%)
+            max-width 300px
+            overflow hidden
+            text-overflow ellipsis
+            white-space nowrap
+</style>

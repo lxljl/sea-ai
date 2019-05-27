@@ -2,12 +2,12 @@
 const cloud = require('wx-server-sdk')
 
 cloud.init({
-    env: 'xxxx' // 你的环境id
+    env: 'xxxx'  // 你的环境id
 })
 
 // 云函数入口函数
 /**
- * 记录详情
+ * 设置封面图片
  */
 exports.main = async(event, context) => {
     let {
@@ -18,7 +18,8 @@ exports.main = async(event, context) => {
     const db = cloud.database()
     return new Promise(async(resolve, reject) => {
         try {
-            if(!event.id) throw {code: 7500, data: [], info: 'id不能为空！'}
+            if(!event.id) throw {code: 7500, data:[], info: 'id不能为空！'}
+            if(typeof event.index != 'number' && event.index > 5 && event.index < 0) throw {code: 7501, data:[], info: '索引错误！'}
             // 获取数据
             let {
                 stats: {
@@ -29,11 +30,10 @@ exports.main = async(event, context) => {
                 _id: event.id
             }).update({
                 data: {
-                    delete: 1
+                    baike_result_index: Number(event.index)
                 }
             })
-            console.log(updated)
-            if(updated == 0) throw {code: 7505, data: [], info: '删除记录失败！'}
+            if(updated == 0) throw {code: 7505, data: [], info: '设置封面图失败！'}
             resolve({
                 code: 0,
                 data: [],

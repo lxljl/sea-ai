@@ -1,66 +1,71 @@
 <template lang="pug">
     view.container
-        view.tabs_box.clearfix
-            view.tabs_item.fl.ac(
-                class="{{type == 1 ? 'cur':''}}"
-                @tap.stop="toggleTabs(1)"
-            ) 动物
-            view.tabs_item.fl.ac(
-                class="{{type == 2 ? 'cur':''}}"
-                @tap.stop="toggleTabs(2)"
-            ) 植物
-            view.tabs_item.fl.ac(
-                class="{{type == 3 ? 'cur':''}}"
-                @tap.stop="toggleTabs(3)"
-            ) 菜品
-            view.tabs_item.fl.ac(
-                class="{{type == 6 ? 'cur':''}}"
-                @tap.stop="toggleTabs(6)"
-            ) 文字
-        view.list_box
-            block(
-                wx:if="{{list.length == 0}}"
+        Nav(
+            :showIcon.sync="showIcon" 
+            title="足迹"
+        )
+        view.tabs_box(
+            style="top:{{titleBarHeight}}px;"
+        )
+            view.picker_type_box
+                picker.picker_type(
+                    @change="toggleTabs"
+                    value="{{classifyIndex}}" 
+                    range="{{classify}}"
+                    range-key="name"
+                )
+                    view {{classify[classifyIndex].name}}
+            view.picker_time_box
+                picker.picker_time(
+                    @change="toggleTimes"
+                    value="{{timeIndex}}" 
+                    range="{{time}}"
+                    range-key="name"
+                ) 
+                    view {{time[timeIndex].name}}
+            view.toggle_view(
+                @tap.stop="isToggleView"
             )
-                view.none
-                    image(
-                        src="/images/none.png"
-                    )
+                text.icon(
+                    class="icon_view{{toggleView ? '3': '2'}}"
+                )
+        view.list_box(
+            class="view{{toggleView ? '3': '2'}}"
+        )
             block(
-                wx:if="{{list.length > 0}}"
+                wx:for="{{list}}"
+                wx:key="this"
             )
                 view.item(
-                    wx:for="{{list}}"
-                    wx:key="this"
                     @tap.stop="details({{item._id}})"
                 )
                     view.item_imgs
-                        view.spinner(
-                            wx:if="{{!item.height}}"
-                        )
                         image(
-                            hidden="{{!item.height}}"
-                            style="height:{{item.height}}"
                             src="{{item.file_id}}"
-                            @load='recordImgH({{index}})'
                         )
-                        view.item_soft_del.fl(
-                            @tap.stop="setPlaza({{item._id}},{{index}},{{item.delete}})"
-                        ) {{item.delete == 1? '展示在广场': '取消展示'}}
-                        view.item_del.fl(
-                            @tap.stop="delIdentification({{item._id}},{{index}})"
-                        ) 删除
-                    view.item_name.ac {{item.baike_result.name}}
-                    view.item_name.ac {{item.created_at}}
-
+                    view.item_info
+                        view.item_name.ac
+                            | 识别结果: 
+                            block(
+                                wx:if="{{item.baike_result_list}}"
+                            )
+                                text {{item.baike_result_list.length}}
+                            block(
+                                wx:else
+                            )
+                                text {{item.baike_result.words_result_num}}
+                        view.item_date.ac {{item.created_at}}
+        view.result_none.ac(
+            wx:if="{{none}}"
+        ) —— 暂无更多 ——
 </template>
 
 <script>
     import wepy from 'wepy'
+    import Nav from '@/components/nav'
     import {
-        getIdentificationList,
-        delIdentification,
-        setPlaza
-    } from '@/service/api/identification'
+        getAnalysisList
+    } from '@/service/api/analysis'
     import {
         showModal,
         showToast
@@ -70,29 +75,40 @@
             navigationBarTitleText: '识别记录',
             // 页面禁止右滑返回手势
             disableSwipeBack: true,
-            enablePullDownRefresh: false
+            enablePullDownRefresh: true,
+            navigationStyle: 'custom',
+        }
+        components = {
+            Nav
         }
         // 监控tabs的变化
         watch = {
-            type(newValue, oldValue){
+            classifyIndex(newValue, oldValue){
+                this.page = 1
+                this.none = false
+                this.getList('PullDown')
+            },
+            timeIndex(newValue, oldValue){
+                this.page = 1
+                this.none = false
                 this.getList('PullDown')
             }
         }
         methods = {
-            // 切换tabs
-            toggleTabs(type) {
-                this.type = Number(type)
+            isToggleView() {
+                this.toggleView = !this.toggleView
             },
-            recordImgH(index, {
-                detail: {
-                    height,
-                    width
-                }
+            // 切换分类
+            toggleTabs({
+                detail
             }) {
-                let winWid = wepy.getSystemInfoSync().windowWidth - 48
-                this.list[index].height = winWid * height / width + "px"
-                console.log(1)
-                this.$apply()
+                this.classifyIndex = detail.value
+            },
+            // 切换时间
+            toggleTimes({
+                detail
+            }) {
+                this.timeIndex = detail.value
             },
             // 详情
             details(id) {
@@ -138,6 +154,35 @@
 
         }
         data = {
+            classify: [{
+                name: '综合',
+                type: '0'
+            },{
+                name: '动物类',
+                type: '1'
+            },{
+                name: '植物类',
+                type: '2'
+            },{
+                name: '菜品类',
+                type: '3'
+            },{
+                name: '汽车类',
+                type: '4'
+            },{
+                name: '文字类',
+                type: '6'
+            }],
+            classifyIndex: 0,
+            time: [{
+                name: '最近三天',
+                type: '3'
+            },{
+                name: '全部',
+                type: 'all'
+            }],
+            timeIndex: 0,
+            toggleView: true,
             // 列表记录数据
             list: [],
             // tabs状态值
@@ -145,14 +190,17 @@
             page: 1,
             limit: 10,
             maxPage: 0,
-            none: false
+            none: false,
+            titleBarHeight: 0,
+            // 插屏广告
+            interstitialAd: null
         }
         onShareAppMessage(res) {
             if (res.from === 'button') {
                 console.log(res.target)
             }
             return {
-                title: '神器AI',
+                title: '识图AI',
                 path: `/views/home/home`
             }
         }
@@ -161,9 +209,10 @@
             try {
                 let {
                     list,
+                    current_page,
                     last_page,
                     total
-                } = await getIdentificationList(this.type, this.page, this.limit, 3394753)
+                } = await getAnalysisList(Number(this.classify[this.classifyIndex].type), this.page, this.limit, this.time[this.timeIndex].type)
                 if (this.page == 1 && sign) {
                     this.list = list
                 } else {
@@ -172,9 +221,13 @@
                 console.log(this.list)
                 this.count = total
                 this.maxPage = last_page
+                if(current_page == last_page || last_page == 0) {
+                    this.none = true
+                }
             } catch (error) {
                 console.log(error)
             } finally {
+                wepy.stopPullDownRefresh()
                 this.$apply()
                 if(this.page == 1 && sign) {
                     wepy.pageScrollTo({
@@ -184,7 +237,13 @@
                 }
             }
         }
-        // 上拉刷新
+        // 下拉刷新
+        onPullDownRefresh() {
+            this.page = 1
+            this.none = false
+            this.getList('PullDown')
+        }
+        // 上拉加载
         onReachBottom() {
             if (this.page == this.maxPage) {
                 this.none = true
@@ -193,8 +252,35 @@
                 this.getList()
             }
         }
+        ad() {
+            // 在页面onLoad回调事件中创建插屏广告实例
+            if (wx.createInterstitialAd) {
+                this.interstitialAd = wx.createInterstitialAd({
+                    adUnitId: wepy.getStorageSync('config')[1]['unit-id']
+                })
+                this.interstitialAd.onLoad(() => {})
+                this.interstitialAd.onError((err) => {})
+                this.interstitialAd.onClose(() => {})
+            }
+            // 在适合的场景显示插屏广告
+            if (this.interstitialAd) {
+                this.interstitialAd.show().catch((err) => {
+                    console.error(err)
+                })
+            }
+        }
         async onLoad() {
             try {
+                let {
+                    model,
+                    statusBarHeight
+                } = await wepy.getSystemInfo()
+                if (model.indexOf('iPhone') !== -1) {
+                    this.titleBarHeight = 44
+                } else {
+                    this.titleBarHeight = 48
+                }
+                this.titleBarHeight += statusBarHeight
                 this.getList('PullDown')
             } catch (error) {
                 console.log(error)
@@ -207,70 +293,93 @@
     page
         padding-bottom 180px
     .tabs_box
+        padding 0 32px
         background-color #fff
         position fixed
         top 0
         left 0
         right 0
+        height 88px
+        line-height 88px
+        display flex
+        justify-content space-between
+        align-items center
+        border-top 1px solid #EDEEF0
         z-index 999
-        .tabs_item
+        .picker_type_box
+        .picker_time_box
+            font-size 28px
+            picker
+                position relative
+                z-index 1
+                color #525866
+                view
+                    &:after
+                        display inline-block
+                        margin-left 5px
+                        content '\e635'
+                        font-family 'icon'
+                        font-size 40px
+                        color #292C33
+                        transform translateY(5px)
+        .picker_time_box
+            margin-right 200px
+        .toggle_view
             position relative
-            width 25%
-            line-height 98px
-            &:before
+            &:after
                 content ''
                 position absolute
-                top 0
-                left 100%
-                width 0
-                height 100%
-                border-bottom 4px solid red
-                transition 0.2s all linear
-            &.cur:before
-                width 100%
-                left 0
-            &.cur ~ &:before
-                left 0
+                top 50%
+                left -40px
+                transform translateY(-50%) scaleX(0.5)
+                height 40px
+                width 2px
+                background-color #E5E5E5
+            .icon
+                font-size 50px
+                color #525866
     .list_box
-        padding-top 132px
-        .none
-            margin 0 auto
-            width 400px
-            height 400px
-            image
-                width 100%
-                height 100%
+        padding 92px 32px 0
+        display flex
+        flex-wrap wrap
+        justify-content space-between
         .item
-            margin 0 auto
-            width 654px
-            &:not(:first-child)
-                margin-top 24px
+            margin-top 8px
             .item_imgs
-                position relative
-                box-shadow 3px 1px 7px rgba(150,150,150,0.3)
-                border-radius 8px
-                overflow hidden
+                width 218px
+                height 218px
                 image
                     width 100%
-                    height 0
-                .item_soft_del
-                .item_del
-                    padding 12px
-                    position absolute
-                    top 50%
-                    transform translateY(-50%)
-                    color #fff
+                    height 100%
+            .item_info
+                padding 12px 0
+                .item_name
+                .item_date
+                    line-height 34px
                     font-size 24px
-                    width 20px
-                .item_soft_del
-                    left 0
-                    background-color #0F9183
-                .item_del 
-                    right 0
-                    background-color #ff002a
-            .item_name
-                color #333333
-            .item_date
-                color #666666
-                    
+                    color #A7A7A7
+                .item_name
+                    color #292C33
+                    text
+                        color #292C33
+                        font-weight 700
+        &.view3
+            &:after
+                content ''
+                width calc(100% / 3)
+            .item
+                width calc(100% / 3)
+        &.view2
+            &:after
+                content ''
+                width calc(calc(100% / 2) - 10px)
+            .item
+                width calc(calc(100% / 2) - 10px)
+                .item_imgs
+                    width 332px
+                    height 332px
+    .result_none
+        padding-top 100px
+        color #292C33
+        font-size 24px
 </style>

@@ -3,7 +3,7 @@ const cloud = require('wx-server-sdk')
 const rq = require('request-promise')
 
 cloud.init({
-    env: 'xxxx'   // 你的环境id
+    env: 'xxxx'  // 你的环境id
 })
 const classify = {
     animal: {
@@ -21,19 +21,16 @@ const classify = {
         type: 3,
         name: '菜品'
     },
-    // flower: {
-    //     url: 'https://aip.baidubce.com/rest/2.0/image-classify/v1/flower',
-    //     type: 4,
-    //     name: '花卉'
-    // },
+    car: {
+        url: 'https://aip.baidubce.com/rest/2.0/image-classify/v1/car',
+        type: 4,
+        name: '车型'
+    },
     // ingredient: {
     //     url: 'https://aip.baidubce.com/rest/2.0/image-classify/v1/classify/ingredient',
     //     type: 5,
     //     name: '果蔬'
     // },
-    // 检测用户上传的图片，输出图片的识别结果名称及对应的概率打分。 注意：在正式使用之前，
-    // 请前往细粒度图像识别页面提交合作咨询，或者申请加入百度图像识别官方QQ群（群号:659268104），
-    // 提供公司名称、appid、应用场景、所需要入库的图片量，工作人员将协助开通调用求权限。注意，工作人员协助开通权限后该接口方可使用。
 }
 // 云函数入口函数
 /**
@@ -55,10 +52,26 @@ exports.main = async(event, context) => {
                 }
             } = await db.collection('baidu-token').doc('token').get()
             if(!event.image) throw {code: 7322, data: [],info: '图片不能为空'}
+
+            // 参数
             let type = event.type || 'plant',
                 image = event.image,
-                top_num = event.top_num || 1
-                baike_num = event.baike_num || 1
+                top_num = event.top_num || 5
+                baike_num = event.baike_num || 5
+            
+            // 色情内容审核
+            let {
+                conclusionType,
+                data
+            } = await rq({
+                method: 'POST',
+                uri: `https://aip.baidubce.com/rest/2.0/solution/v1/img_censor/v2/user_defined?access_token=${access_token}`,
+                form: {
+                    image
+                },
+                json: true
+            })
+            if(conclusionType != 1) throw {code: 7323, data: [],info: data[0].msg}
 
             // 假如是文字识别 
             let ocrArr = ['ocr', 'handwriting', 'idcard', 'bankcard', 'license_plate']
@@ -121,18 +134,25 @@ exports.main = async(event, context) => {
                 cloudPath: `identification-record/${OPENID}-${Number(new Date())}.jpg`,
                 fileContent: new Buffer(image, 'base64'),
             })
+            let obj = {
+                file_id: fileID,
+                openid: OPENID,
+                created_at: db.serverDate(),
+                type: classify[type].type,
+                baike_result: result[0],
+                baike_result_list: result,
+                baike_result_index: 0,
+                delete: 0
+            }
+            if(classify[type].type == 6) {
+                delete obj.baike_result_list
+                delete obj.baike_result_index
+            } 
             // 新增数据
             let {
                 _id
             } = await db.collection('identification-record').add({
-                data:{
-                    file_id: fileID,
-                    openid: OPENID,
-                    created_at: db.serverDate(),
-                    type: classify[type].type,
-                    baike_result: result[0],
-                    delete: 0
-                }
+                data: obj
             })
             resolve({
                 id: _id,

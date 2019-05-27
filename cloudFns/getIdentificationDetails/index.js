@@ -28,7 +28,10 @@ exports.main = async(event, context) => {
                 _id: true,
                 file_id: true,
                 created_at: true,
-                baike_result: true
+                baike_result: true,
+                baike_result_list: true,
+                baike_result_index: true,
+                type: true
             }).get()
             if(data.length == 0) throw {code: 7501, data:[], info: '找不到对应的记录！'}
             resolve({

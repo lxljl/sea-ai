@@ -138,6 +138,38 @@ export function localEncoding(filePath, encoding = 'base64') {
 }
 
 /**
+ * 打招呼
+ */
+export function sayHello () {
+　  let now = new Date(),
+        hour = now.getHours() 
+    if(hour < 6){
+        return 'Hi~凌晨好!'
+    } else if (hour < 9){
+        return "Hi~早上好!"
+    } else if (hour < 12){
+        return "Hi~上午好!"
+    } else if (hour < 14){
+        return "Hi~中午好!"
+    } else if (hour < 17){
+        return "Hi~下午好!"
+    } else if (hour < 19){
+        return "Hi~傍晚好!"
+    } else if (hour < 22){
+        return "Hi~晚上好!"
+    } else {
+        return "Hi~夜里好!"
+    }
+}
+
+/**
+ * 该页面是否可以返回上一页
+ */
+export function isBack () {
+    return getCurrentPages().length !== 1
+}
+
+/**
  * 云函数调用
  * @param {string} name 云函数名字
  * @param {string} data 传输的数据

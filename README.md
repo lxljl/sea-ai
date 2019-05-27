@@ -8,6 +8,13 @@
     <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/home.jpg" alt="菊花码" width="200" height="200">
 </p>
 
+<p align="center">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show1.jpg" alt="效果1">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show2.jpg" alt="效果2">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show3.jpg" alt="效果3">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show4.jpg" alt="效果4">
+</p>
+
 ### 学习本项目
 
 整套前端使用 [Wepy](https://github.com/tencent/wepy) 开发，提倡前端组件化工程化，高效的完成前端项目。
