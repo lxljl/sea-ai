@@ -14,10 +14,10 @@
 
 ## 效果预览
 <p align="center">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show1.png" alt="效果1">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show2.png" alt="效果2">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show3.png" alt="效果3">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show4.png" alt="效果4">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show1.png" alt="效果1" width="200">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show2.png" alt="效果2" width="200">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show3.png" alt="效果3" width="200">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/show4.png" alt="效果4" width="200">
 </p>
 
 ### 学习本项目
