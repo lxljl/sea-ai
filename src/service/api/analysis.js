@@ -3,7 +3,7 @@
  * @Date: 2018-09-25 13:46:23 
  * @Desc: 关于识别的一些常用操作 
  * @Last Modified by: lx (前端开发工程师)
- * @Last Modified time: 2019-05-20 16:15:48
+ * @Last Modified time: 2020-05-25 11:04:10
  */
 
 import {
@@ -20,11 +20,16 @@ import {
 export function getAnalysis(tempFilePath, type = 'plant') {
     return new Promise(async (resolve, reject) => {
         try {
-            let image = await localEncoding(tempFilePath)
+            let {
+                fileID
+            } = await wx.cloud.uploadFile({
+                cloudPath: `identification-record/${wx.getStorageSync('user').openid}-${Number(new Date())}.jpg`,
+                filePath: tempFilePath, // 文件路径
+            })
             let {
                 id
             } = await cloudFn('getAnalysis', {
-                image,
+                fileID,
                 type
             })
             resolve(id)

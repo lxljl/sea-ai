@@ -5,7 +5,7 @@
 ## 项目介绍
 一款方便快捷识别AI,可根据您拍摄或相册中照片识别出您所需要知道的物种(植物,动物,图文,菜品类型),相关知识,帮助您了解该物种,打开新世界!
 <p align="center">
-    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/home.jpg" alt="菊花码" width="200" height="200">
+    <img src="https://github.com/lxljl/sea-ai/blob/master/src/images/search_logo.png" alt="菊花码" width="200" height="200">
 </p>
 
 ## 特别鸣谢  

@@ -58,11 +58,6 @@
             Nav
         }
         methods = {
-            adError(e) {
-                if(e.detail.errCode != 3) {
-                    this.isAd = true
-                }
-            },
             switchClassify(index) {
                 this.classifyIndex = index
             },
@@ -80,7 +75,7 @@
                         tempFilePaths
                     }  = await wepy.chooseImage({
                         count: '1', //最多可以选择的图片张数
-                        sizeType: ['original', 'compressed'],
+                        sizeType: ['compressed'],
                         sourceType: ['album', 'camera'],
                     })
                     let id = await getAnalysis(tempFilePaths[0], type)

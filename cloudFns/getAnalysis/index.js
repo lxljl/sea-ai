@@ -51,14 +51,22 @@ exports.main = async(event, context) => {
                     access_token
                 }
             } = await db.collection('baidu-token').doc('token').get()
-            if(!event.image) throw {code: 7322, data: [],info: '图片不能为空'}
+            if(!event.fileID) throw {code: 7322, data: [],info: '图片不能为空'}
 
             // 参数
             let type = event.type || 'plant',
-                image = event.image,
+                fileID = event.fileID,
                 top_num = event.top_num || 5
                 baike_num = event.baike_num || 5
             
+            // 从云函数下载下来
+            let {
+                fileContent
+            } = await cloud.downloadFile({
+                fileID,
+            })
+            let image = fileContent.toString('base64')
+
             // 色情内容审核
             let {
                 conclusionType,
@@ -71,7 +79,7 @@ exports.main = async(event, context) => {
                 },
                 json: true
             })
-            if(conclusionType != 1) throw {code: 7323, data: [],info: data[0].msg}
+            if(conclusionType != 1) throw {code: 7323, data: [],info: data[0].msg, fileID}
 
             // 假如是文字识别 
             let ocrArr = ['ocr', 'handwriting', 'idcard', 'bankcard', 'license_plate']
@@ -114,10 +122,11 @@ exports.main = async(event, context) => {
             })
             
             // 错误判断
-            if(!result) throw {code: 7480, data:[],info: error_msg}
-            if(result[0].score == 0) throw {code: 7481, data:[],info: result[0].name} 
-            if(result[0].name == '非动物') throw {code: 7482, data:[],info: result[0].name} 
-            if(result[0].name == '非菜') throw {code: 7483, data:[],info: result[0].name} 
+            if(!result) throw {code: 7480, data:[],info: error_msg, fileID}
+            if(result[0].score == 0) throw {code: 7481, data:[],info: result[0].name, fileID} 
+            if(result[0].name == '非动物') throw {code: 7482, data:[],info: result[0].name, fileID} 
+            if(result[0].name == '非菜') throw {code: 7483, data:[],info: result[0].name, fileID} 
+            if(result[0].name == '非植物') throw {code: 7484, data:[],info: result[0].name, fileID} 
             // 格式化列表
             for (let i = 0; i < result.length; i++) {
                 let item = result[i]
@@ -127,13 +136,6 @@ exports.main = async(event, context) => {
                     }
                 }
             }
-            // 正确后图片上传云端 
-            let {
-                fileID
-            } = await cloud.uploadFile({
-                cloudPath: `identification-record/${OPENID}-${Number(new Date())}.jpg`,
-                fileContent: new Buffer(image, 'base64'),
-            })
             let obj = {
                 file_id: fileID,
                 openid: OPENID,
@@ -161,6 +163,7 @@ exports.main = async(event, context) => {
             })
         } catch (error) {
             console.log(error)
+            if(error.fileID) await cloud.deleteFile({fileList: [error.fileID]})
             if(!error.code) reject(error)
             resolve(error)
         }
